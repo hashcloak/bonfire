@@ -6,12 +6,15 @@ import QRCode from "react-qr-code";
 import Button from "react-bootstrap/Button";
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
+import { ethers } from "ethers";
 
 function App(this: any) {
   const [loaded, setLoaded] = useState(false);
   const [pubkey, setPubkey] = useState<any[]>();
   const [show, setShow] = useState(false);
   const [receiver, setReceiver] = useState("");
+  const [Provider, setProvider] = useState<ethers.BrowserProvider | null>(new ethers.BrowserProvider(window.ethereum));
+  const [Signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null);
 
   const handleClosePopup = () => setShow(false);
   const handleShowPopup = () => setShow(true);
@@ -69,26 +72,48 @@ function App(this: any) {
         const verificationJSON = await verificationResp.json();
         console.log(verificationJSON);
 
-        // Extracting public key from COSE_Key-encoded ecc key
-        // https://www.w3.org/TR/2021/REC-webauthn-2-20210408/ section 6.5.1.1
-        let pubkeyArray = [];
-        for (let i = 10; i < 42; i++) {
-          pubkeyArray.push(verificationJSON.pubkey[i]);
-        }
-        for (let i = 45; i < 77; i++) {
-          pubkeyArray.push(verificationJSON.pubkey[i]);
-        }
-        console.log(pubkeyArray);
-
-        setPubkey(pubkeyArray);
-
-        // TODO call contract and get burner wallet address. Set address. 
-
         if (verificationJSON && verificationJSON.verified) {
           console.log("Registration successful");
+
+          // Extracting public key from COSE_Key-encoded ecc key
+          // https://www.w3.org/TR/2021/REC-webauthn-2-20210408/ section 6.5.1.1
+          let pubkeyArray: any[] = [];
+          for (let i = 10; i < 42; i++) {
+            pubkeyArray.push(verificationJSON.pubkey[i]);
+          }
+          for (let i = 45; i < 77; i++) {
+            pubkeyArray.push(verificationJSON.pubkey[i]);
+          }
+          console.log(pubkeyArray);
+
+          if (Provider === null) {
+            console.log('Provider not found, this is needed to instantiate Burner wallet...');
+            return;
+          }
+      
+          const signer = Provider.getSigner();
+          signer.then((s) => {
+            setSigner(s);
+            console.log('signer',s);
+
+            const tx = s.sendTransaction({
+              to: "0x452670039DB664178A1D16e9772463A9436d58E9",
+              value: ethers.parseEther("0.0000001"),
+              chainId: 31337
+            });
+            tx.then((t) => {
+              console.log(t);
+              setPubkey(pubkeyArray);
+              // TODO call contract and get burner wallet address. Set address. 
+            }).catch(() => {
+              console.log("transaction rejected");
+            })
+          });
+
         } else {
           console.error("Registration failed");
         }
+    
       })
       .catch((err) => {
         console.error("Error fetching data:", err);
@@ -138,6 +163,18 @@ function App(this: any) {
       <div style={wallet_page} className="m-0 p-0 container-xxl text-center" >
 
         <div className="row justify-content-center pt-5">
+          <div className="col-6">
+            <div className="card p-3" style={balance_card}>
+              <div className="card-header text-start">
+                <h2>Balance</h2>
+              </div>
+
+              <div className="card-body">
+                {/* TODO add balances */}
+              </div>
+            </div>
+          </div>
+
           <div className="col-4">
             <div className="card p-3" style={wallet_card}>
             <div className="card-header">
@@ -150,7 +187,8 @@ function App(this: any) {
                 style={{ height: "auto", maxWidth: "100%", width: "100%"}}
                 value={pubkey.toString()} //TODO this needs to be the address
                 viewBox={`0 0 256 256`}
-                />
+                /><br></br>
+                <p className="pt-3">0xb794f5ea0ba39494ce839613fffba74279579268</p> {/*TODO this needs to be the address*/}
               </div>
 
               <Button style={buttonCreateStyle}  onClick={handleShowPopup}>
@@ -273,6 +311,12 @@ const wallet_page = {
 
 const wallet_card = {
   backgroundColor: "#FF8500",
+}
+
+const balance_card = {
+  backgroundColor: "#333333",
+  height: "100vh",
+  color: "white"
 }
 
 // Dark Charcoal: #333333
