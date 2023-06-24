@@ -33,10 +33,13 @@ contract BonsaiStarter is BonsaiCallbackReceiver {
 
     /// @notice Gas limit set on the callback from Bonsai.
     /// @dev Should be set to the maximum amount of gas your callback might reasonably consume.
-    uint64 private constant BONSAI_CALLBACK_GAS_LIMIT = 100000;
+    uint64 private constant BONSAI_CALLBACK_GAS_LIMIT = 600000;
 
     /// @notice Initialize the contract, binding it to a specified Bonsai relay and RISC Zero guest image.
-    constructor(IBonsaiRelay bonsaiRelay, bytes32 _fibImageId) BonsaiCallbackReceiver(bonsaiRelay) {
+    constructor(
+        IBonsaiRelay bonsaiRelay,
+        bytes32 _fibImageId
+    ) BonsaiCallbackReceiver(bonsaiRelay) {
         fibImageId = _fibImageId;
     }
 
@@ -52,7 +55,10 @@ contract BonsaiStarter is BonsaiCallbackReceiver {
     }
 
     /// @notice Callback function logic for processing verified journals from Bonsai.
-    function storeResult(uint256 n, uint256 result) external onlyBonsaiCallback(fibImageId) {
+    function storeResult(
+        uint256 n,
+        uint256 result
+    ) external onlyBonsaiCallback(fibImageId) {
         emit CalculateFibonacciCallback(n, result);
         fibonacciCache[n] = result;
     }
@@ -63,7 +69,11 @@ contract BonsaiStarter is BonsaiCallbackReceiver {
     ///      the given input and asynchronously return the verified results via the callback below.
     function calculateFibonacci(uint256 n) external {
         bonsaiRelay.requestCallback(
-            fibImageId, abi.encode(n), address(this), this.storeResult.selector, BONSAI_CALLBACK_GAS_LIMIT
+            fibImageId,
+            abi.encode(n),
+            address(this),
+            this.storeResult.selector,
+            BONSAI_CALLBACK_GAS_LIMIT
         );
     }
 }

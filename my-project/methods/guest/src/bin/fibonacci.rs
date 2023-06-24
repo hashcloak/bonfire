@@ -103,8 +103,13 @@ fn main() {
         message.as_slice(),
         &signature,
     );
-    assert!(result.is_ok());
+    
+    // assert!(result.is_ok());
 
-    // // Commit to the journal the verifying key and messge that was signed.
-    env::commit(&(input_bytes, result.is_ok()));
+    env::commit_slice(&ethabi::encode(&[
+        Token::Bool(result.is_ok()),
+        Token::Address(ethabi::Address::from_slice(&addr)),
+        Token::Uint(ethabi::Uint::from_big_endian(&value)),
+    ]));
+
 }
