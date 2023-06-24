@@ -6,6 +6,7 @@ import './App.css';
 function App() {
   const [Provider, setProvider] = useState<ethers.BrowserProvider | null>(new ethers.BrowserProvider(window.ethereum));
   const [Signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null);
+  const [ContractAddress, setContractAddress] = useState<string | null>("0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512");
 
   const Connect = () => {
     if (Provider === null) {
@@ -28,16 +29,20 @@ function App() {
       console.log('signer not found');
       return;
     }
+    if (ContractAddress === null) {
+      console.log('contract address not found');
+      return;
+    }
 
-    const tx = Signer.sendTransaction({
-      to: "0x452670039DB664178A1D16e9772463A9436d58E9",
-      value: ethers.parseEther("1.0")
-    });
-    tx.then((t) => {
-      console.log(t);
-    }).catch(() => {
-      console.log("transaction rejected");
-    })
+    const abi = [
+      "function fibonacci(uint256 n) external view returns (uint256)",
+      "function calculateFibonacci(uint256 n) external",
+    ];
+    const contract = new ethers.Contract(ContractAddress, abi, Signer);
+
+    const a = contract.calculateFibonacci(5);
+    console.log(a);
+
   }
 
   return (
