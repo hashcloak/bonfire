@@ -201,7 +201,7 @@ app.post('/verify-registration', async (req, res) => {
 
   req.session.currentChallenge = undefined;
 
-  res.send({ verified });
+  res.send({ pubkey: verification.registrationInfo?.credentialPublicKey, verified: verified });
 });
 
 /**

@@ -2,10 +2,25 @@ import React, { useEffect, useState } from "react";
 import 'bootstrap/dist/css/bootstrap.css';
 import "./App.css";
 import { startRegistration, startAuthentication } from "@simplewebauthn/browser";
+import QRCode from "react-qr-code";
+import Button from "react-bootstrap/Button";
+import Modal from 'react-bootstrap/Modal';
+import Form from 'react-bootstrap/Form';
 
-
-function App() {
+function App(this: any) {
   const [loaded, setLoaded] = useState(false);
+  const [pubkey, setPubkey] = useState<any[]>();
+  const [show, setShow] = useState(false);
+  const [receiver, setReceiver] = useState("");
+
+  const handleClosePopup = () => setShow(false);
+  const handleShowPopup = () => setShow(true);
+
+  // Sets receiver for transferring funds
+  const handleReceiverChange = (event: any) => {
+    console.log(event);
+    setReceiver(event.target.value);
+  };
 
   useEffect(() => {
     setTimeout(() => {
@@ -29,6 +44,7 @@ function App() {
       });
   }, [])
 
+  // Create Burner Wallet, by registering on WebAuthn
   async function btnRegBegin() {
     fetch("/generate-registration-options")
       .then(async (res) => {
@@ -52,6 +68,22 @@ function App() {
 
         const verificationJSON = await verificationResp.json();
         console.log(verificationJSON);
+
+        // Extracting public key from COSE_Key-encoded ecc key
+        // https://www.w3.org/TR/2021/REC-webauthn-2-20210408/ section 6.5.1.1
+        let pubkeyArray = [];
+        for (let i = 10; i < 42; i++) {
+          pubkeyArray.push(verificationJSON.pubkey[i]);
+        }
+        for (let i = 45; i < 77; i++) {
+          pubkeyArray.push(verificationJSON.pubkey[i]);
+        }
+        console.log(pubkeyArray);
+
+        setPubkey(pubkeyArray);
+
+        // TODO call contract and get burner wallet address. Set address. 
+
         if (verificationJSON && verificationJSON.verified) {
           console.log("Registration successful");
         } else {
@@ -63,7 +95,10 @@ function App() {
       }); 
   }
 
+  // Authenticate a transaction, by authenticating with WebAuthn
   async function btnAuthBegin() {
+    setShow(false);
+    console.log('Sending funds to:', receiver);
 
     const resp = await fetch('/generate-authentication-options');
 
@@ -92,15 +127,79 @@ function App() {
       console.error("Authentication failed");
     }
 
+    setReceiver("");
+
+    // TODO Send signature to contract for funds
   }
-  
 
 
-  if (!loaded) return null
+  if (pubkey)   return (
+    <>
+      <div style={wallet_page} className="m-0 p-0 container-xxl text-center" >
+
+        <div className="row justify-content-center pt-5">
+          <div className="col-4">
+            <div className="card p-3" style={wallet_card}>
+            <div className="card-header">
+              <h2>Your Bonfire Address</h2>
+            </div>
+              <div className="card-body">
+                
+              <QRCode
+                size={256}
+                style={{ height: "auto", maxWidth: "100%", width: "100%"}}
+                value={pubkey.toString()} //TODO this needs to be the address
+                viewBox={`0 0 256 256`}
+                />
+              </div>
+
+              <Button style={buttonCreateStyle}  onClick={handleShowPopup}>
+              Send funds
+              </Button>
+
+              <Modal show={show} onHide={handleClosePopup}>
+                <Modal.Header closeButton>
+                  <Modal.Title>Transfer</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+
+                <Form>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Receiver Address</Form.Label>
+                    <br></br>
+                    <input
+                      type="text"
+                      name="receiver"
+                      value={receiver}
+                      onChange={handleReceiverChange}
+                      style={receiverInput}
+                    />
+
+                  </Form.Group>
+                </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                  <Button variant="secondary" onClick={handleClosePopup}>
+                    Close
+                  </Button>
+                  <Button style={orangeButton} onClick={btnAuthBegin}>
+                    Send funds
+                  </Button>
+                </Modal.Footer>
+              </Modal>
+            </div>
+          
+          </div>
+        </div>
+        </div>
+
+      
+    </>
+  );
   
   return (
     <>
-      <div style={main_app} className="container-xxl text-center" >
+      <div style={register_page} className="m-0 p-0 container-xxl text-center" >
         
         <div className="row justify-content-center">
           <div className="col-4">
@@ -115,20 +214,17 @@ function App() {
               </button>
           </div>
         </div>
-
-        <div className="row justify-content-center">
-          <div className="col-4">
-          <button className="btn btn-primary" style={buttonSendFundsStyle}  onClick={btnAuthBegin}>
-              Send funds
-              </button>
-          </div>
-        </div>
       </div>
     </>
   );
 }
 
 export default App;
+
+const orangeButton = {
+  backgroundColor: "#FF6F00",
+  border: "none",
+}
 
 const buttonCreateStyle = {
   borderRadius: "10px",
@@ -140,30 +236,43 @@ const buttonCreateStyle = {
   border: "none",
   outline: "none",
   height: "60px",
-  width: "300px",
   cursor: "pointer"
 }
 
 const buttonSendFundsStyle = {
   borderRadius: "10px",
   marginTop: "10px",
-  backgroundColor: "#333333",
-  fontSize: "20px",
+  backgroundColor: "#FF6F00",
+  fontSize: "18px",
   fontWeight: "600",
-  color: "#FF6F00",
-  border: "#FF6F00",
-  borderWidth: "1px",
-  borderStyle: "solid",
+  color: "rgba(0, 0, 0, .88)",
+  border: "none",
   outline: "none",
-  height: "60px",
-  width: "300px",
+  height: "40px",
   cursor: "pointer"
 }
 
+const receiverInput = {
+  width: "100%"
+}
+
 // Full height, dark background
-const main_app = {
-  backgroundColor: "#333333",
-  height: "100vh"
+const register_page = {
+  backgroundColor: "#0B0B0B",
+  height: "100vh",
+  maxWidth: "100%", 
+  width: "100%"
+}
+
+const wallet_page = {
+  backgroundColor: "#0B0B0B",
+  height: "100vh",
+  maxWidth: "100%", 
+  width: "100%"
+}
+
+const wallet_card = {
+  backgroundColor: "#FF8500",
 }
 
 // Dark Charcoal: #333333
