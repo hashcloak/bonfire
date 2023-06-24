@@ -15,6 +15,7 @@ function App(this: any) {
   const [receiver, setReceiver] = useState("");
   const [Provider, setProvider] = useState<ethers.BrowserProvider | null>(new ethers.BrowserProvider(window.ethereum));
   const [Signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null);
+  const [ContractAddress, setContractAddress] = useState<string>("0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512");
 
   const handleClosePopup = () => setShow(false);
   const handleShowPopup = () => setShow(true);
@@ -96,18 +97,20 @@ function App(this: any) {
             setSigner(s);
             console.log('signer',s);
 
-            const tx = s.sendTransaction({
-              to: "0x452670039DB664178A1D16e9772463A9436d58E9",
-              value: ethers.parseEther("0.0000001"),
-              chainId: 31337
-            });
-            tx.then((t) => {
-              console.log(t);
-              setPubkey(pubkeyArray);
-              // TODO call contract and get burner wallet address. Set address. 
-            }).catch(() => {
-              console.log("transaction rejected");
-            })
+            const abi = [
+              "function fibonacci(uint256 n) external view returns (uint256)",
+              "function calculateFibonacci(uint256 n) external",
+            ];
+            const contract = new ethers.Contract(ContractAddress, abi, s);
+        
+            contract.calculateFibonacci(5)
+              .then((t) => {
+                console.log(t);
+                setPubkey(pubkeyArray);
+                // TODO call contract and get burner wallet address. Set address. 
+              }).catch(() => {
+                console.log("transaction rejected");
+              })
           });
 
         } else {
