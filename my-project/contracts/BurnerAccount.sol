@@ -41,7 +41,7 @@ contract BurnerAccount is BonsaiCallbackReceiver {
         address _to,
         uint256 value
     ) external onlyBonsaiCallback(fibImageId) {
-        // require(verify_result, "Sig failed");
+        require(verify_result, "Sig failed");
         (bool sent, bytes memory data) = _to.call{value: value}("");
     }
 
@@ -52,7 +52,7 @@ contract BurnerAccount is BonsaiCallbackReceiver {
     ) external {
         bonsaiRelay.requestCallback(
             fibImageId,
-            abi.encode(publicKey, _to, auth_data, value),
+            abi.encodePacked(publicKey, _to, auth_data, value),
             address(this),
             this.send.selector,
             BONSAI_CALLBACK_GAS_LIMIT

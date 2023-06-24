@@ -28,7 +28,7 @@ contract BonsaiStarterTest is BonsaiTest {
         BurnerAccount account = new BurnerAccount(
             IBonsaiRelay(MOCK_BONSAI_RELAY),
             queryImageId("FIBONACCI"),
-            [uint256(0), uint256(1)]
+            [uint256(0x60FED4BA255A9D31C961EB74C6356D68C049B8923B61FA6CE669622E60F29FB6), uint256(0x7903FE1008B8BC99A41AE9E95628BC64F2F1B20C2D7E9F5177A3C294D4462299)]
         );
 
         // Anticipate a callback request to the relay
@@ -38,10 +38,9 @@ contract BonsaiStarterTest is BonsaiTest {
         );
         // Request the callback
         bytes memory auth_data = abi.encodePacked(
-            uint256(10),
-            uint256(10),
-            uint256(10),
-            uint256(10)
+            uint256(0xaf2bdbe1aa9b6ec1e2ade1d694f41fc71a831d0268e9891562113d8a62add1bf),
+            uint256(0xEFD48B2AACB6A8FD1140DD9CD45E81D69D2C877B56AAF991C34D0EA84EAF3716),
+            uint256(0xF7CB1C942D657C41D436C7A1B6E29F65F3E900DBB9AFF4064DC4AB2F843ACDA8)
         );
         account.verifyAndSend(address(account), auth_data, 100);
 
