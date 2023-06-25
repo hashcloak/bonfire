@@ -87,6 +87,9 @@ function App() {
 
   return (
     <div className="App">
+      <div style={{ padding: "2rem" }}>
+          <h2>0. Run avail, deploy relay contract, launch relay server.</h2>
+      </div>
       <div className="ConnectWallet" style={{ padding: "2rem" }}>
           <h2>1. connect wallet</h2>
           <button onClick={Connect}>connect</button>
