@@ -33,8 +33,9 @@ function App() {
     const factory = new ethers.ContractFactory(abi, bytecode, Signer);
     // TODO: this image id is for fibonacci
     const imageId = "0xee32dd84d935ed8db5221232ab389d77b1e07bde85db192d31fcc673bfd0726f";
+    const relayAddress = "0x5fbdb2315678afecb367f032d93f642f64180aa3";
 
-    factory.deploy("0x5fbdb2315678afecb367f032d93f642f64180aa3", imageId).then((contract) => {
+    factory.deploy(relayAddress, imageId).then((contract) => {
       console.log("deploy started...");
       return contract.waitForDeployment();
     }).then((result) => {
