@@ -218,7 +218,7 @@ function App(this: any) {
       return;
     }
 
-    const value = 1;
+    const value = 1000;
     const contract = new ethers.Contract(contractAddress, abi, signer);
 
     contract.verifyAndSend(receiver, hexlify(authData), value)
@@ -227,6 +227,24 @@ function App(this: any) {
       }).catch((err) => {
         console.error("Error Sending transaction:", err);
       });
+  }
+
+  const checkBalance = () => {
+    if (contractAddress === null) {
+      console.log('contract address not found');
+      return;
+    }
+    // readonly
+    const contract = new ethers.Contract(contractAddress, abi, provider);
+
+    // TODO: check the result of money transfer
+    if (provider === null) { return }
+    provider.getBalance(contractAddress)
+      .then((result) => {
+        console.log("balance of wallet contract: ", result);
+      }).catch((err) => {
+        console.log("error: ", err);
+      })
   }
 
 
@@ -257,6 +275,9 @@ function App(this: any) {
               Send funds
               </Button>
 
+              <Button style={orangeButton} onClick={checkBalance}>
+                    Check Balance
+                  </Button>
               <Modal show={show} onHide={handleClosePopup}>
                 <Modal.Header closeButton>
                   <Modal.Title>Transfer</Modal.Title>
