@@ -101,39 +101,12 @@ function App() {
       </div>
       <div className="CreateWallet" style={{ padding: "2rem" } }>
         <h2>2. Create Wallet (only first)</h2>
-        <ul>
-            <li>
-              <span>Deposit Amount</span><input></input>
-            </li>
-        </ul>
         <button onClick={() => { CreateWallet("0x60FED4BA255A9D31C961EB74C6356D68C049B8923B61FA6CE669622E60F29FB6","0x7903FE1008B8BC99A41AE9E95628BC64F2F1B20C2D7E9F5177A3C294D4462299") }}>create</button>
         <span>contractAddress { ContractAddress ? ContractAddress : 'not found' }</span>
         <span>(check console log for result.)</span>
       </div>
       <div className="Send" style={{ padding: "2rem"} }>
           <h2>3. Send money from contract</h2>
-          <ul>
-              <li>
-                  <span>Pubkey</span>
-                  <input></input>
-              </li>
-              <li>
-                  <span>Signature</span>
-                  <input></input>
-              </li>
-              <li>
-                  <span>Message</span>
-                  <input></input>
-              </li>
-              <li>
-                  <span>To</span>
-                  <input></input>
-              </li>
-              <li>
-                  <span>Amount</span>
-                  <input></input>
-              </li>
-          </ul>
           <button onClick={Send}>Submit send request</button>
           <span>(check console log for result. wait for 1 conf on blockchain.)</span>
       </div>
