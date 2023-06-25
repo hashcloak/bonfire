@@ -147,12 +147,9 @@ function App(this: any) {
       }); 
   }
 
-  function removeFirstIfNeeded(byteArray: Uint8Array): Uint8Array {
-    if (byteArray.byteLength == 33) {
-      return byteArray.slice(1);
-    } else {
-      return byteArray.slice(0);
-    }
+  // Helper functions from @simplewebauthn/server
+  function shouldRemoveLeadingZero(bytes: Uint8Array): boolean {
+    return bytes[0] === 0x0 && (bytes[1] & (1 << 7)) !== 0;
   }
 
   // Authenticate a transaction, by authenticating with WebAuthn
@@ -189,16 +186,25 @@ function App(this: any) {
 
     global.Buffer = global.Buffer || require('buffer').Buffer;
 
+    // Retrieving the r and s values, see https://github.com/MasterKale/SimpleWebAuthn/blob/6f363aa53a69cf8c1ea69664924c1e9f8e19dc4e/packages/server/src/helpers/iso/isoCrypto/verifyEC2.ts#L103
     const parsedSignature = AsnParser.parse(
       base64url.toBuffer(asseResp.response.signature),
       ECDSASigValue,
-    ); 
+    );
+    let rBytes = new Uint8Array(parsedSignature.r);
+    let sBytes = new Uint8Array(parsedSignature.s);
 
-    //parsing the signature 
-    let r = new Uint8Array(parsedSignature.r);
-    let s = new Uint8Array(parsedSignature.s);
-    let rr = removeFirstIfNeeded(r);
-    let ss = removeFirstIfNeeded(s);
+    console.log(asseResp.response.signature);
+    console.log(rBytes);
+    console.log(sBytes);
+
+    if (shouldRemoveLeadingZero(rBytes)) {
+      rBytes = rBytes.slice(1);
+    }
+
+    if (shouldRemoveLeadingZero(sBytes)) {
+      sBytes = sBytes.slice(1);
+    }
 
     let authData = [];
 
@@ -206,10 +212,10 @@ function App(this: any) {
       authData.push(authResponse.hashedSignatureBase[i]);
     }
     for (let i = 0; i < 32; i++) {
-      authData.push(rr[i]);
+      authData.push(rBytes[i]);
     }
     for (let i = 0; i < 32; i++) {
-      authData.push(ss[i]);
+      authData.push(sBytes[i]);
     }
     console.log(authData);
 
