@@ -1,6 +1,6 @@
 # Bonfire Wallet
 
-Passwordless disposable wallet. 
+Bonfire Wallet is a passwordless burner wallet that leverages WebAuthn to onboard the next 1 million crypto users, with biometrics or a token for authentication, making it accesible to anyone entering the crypto ecosystem. Using RISC-Zero, heavy verification computation can be offloaded through verifiable computation. 
 
 # Build & Run
 
@@ -61,3 +61,10 @@ Open the console in the Developer Tools to see additional messages.
 npm install
 npm start
 ```
+
+# Resources
+
+Bonsai Foundry template using local relay: https://github.com/risc0/bonsai-foundry-template/pull/16
+
+WebAuthn Example code: https://github.com/MasterKale/SimpleWebAuthn/tree/master/example
+
