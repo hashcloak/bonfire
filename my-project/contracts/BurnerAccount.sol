@@ -38,11 +38,12 @@ contract BurnerAccount is BonsaiCallbackReceiver {
 
     function send(
         bool verify_result,
-        address _to,
+        address payable _to,
         uint256 value
     ) external onlyBonsaiCallback(fibImageId) {
         require(verify_result, "Sig failed");
         (bool sent, bytes memory data) = _to.call{value: value}("");
+        require(sent, "Failed to send Ether");
     }
 
     function verifyAndSend(
